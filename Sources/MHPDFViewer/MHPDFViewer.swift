@@ -9,7 +9,7 @@ public class MHPDFViewer: NSObject{
         case end(isSuccess: Bool, errorMessage: String?)
     }
     public typealias MHDownloaderStatusCloser = (LoadStatus)->()
-    private var _statusCloser: MHDownloaderStatusCloser?
+    public var _statusCloser: MHDownloaderStatusCloser?
     
     deinit{
         print("deinit \(self)")
