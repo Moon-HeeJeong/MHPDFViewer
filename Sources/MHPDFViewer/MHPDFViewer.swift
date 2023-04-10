@@ -8,8 +8,8 @@ public class MHPDFViewer: NSObject{
         case ing
         case end(isSuccess: Bool, errorMessage: String?)
     }
-    public typealias MHPDFViewerStatusCloser = (LoadStatus)->()
-    private var _statusCloser: MHPDFViewerStatusCloser?
+    public typealias MHPDFViewerStatusClosure = (LoadStatus)->()
+    private var _statusClosure: MHPDFViewerStatusClosure?
     
     deinit{
         print("deinit \(self)")
@@ -22,17 +22,18 @@ public class MHPDFViewer: NSObject{
     unowned let presenter: UIViewController
     
     
-    public init(presenter: UIViewController, closer: MHPDFViewerStatusCloser? = nil) {
+    public init(presenter: UIViewController, closure: MHPDFViewerStatusClosure? = nil) {
         self.presenter = presenter
         self._documentInteractionController = UIDocumentInteractionController()
         
         super.init()
         self._documentInteractionController.delegate = self
-        self._statusCloser = closer
+//        self._statusCloser = closer
+        self.setClosure(closure: closure)
     }
     
-    public func setCloser(closer: MHPDFViewerStatusCloser?){
-        self._statusCloser = closer
+    public func setClosure(closure: MHPDFViewerStatusClosure?){
+        self._statusClosure = closure
     }
     
     public func open(urlStr: String?, title: String){
@@ -62,19 +63,19 @@ public class MHPDFViewer: NSObject{
     
     /// This function will store your document to some temporary URL and then provide sharing, copying, printing, saving options to the user
     private func storeAndShare(withURLString: String, title: String) {
-        self._statusCloser?(.start)
+        self._statusClosure?(.start)
         guard let url = URL(string: withURLString) else {
-            self._statusCloser?(.end(isSuccess: false, errorMessage: "ERROR : Downloader URL Incorrected"))
+            self._statusClosure?(.end(isSuccess: false, errorMessage: "ERROR : Downloader URL Incorrected"))
             return
         }
         
         self._task = URLSession.shared.dataTask(with: url) { data, response, error in
             
-            self._statusCloser?(.ing)
+            self._statusClosure?(.ing)
             
             guard let data = data, error == nil else {
                 DispatchQueue.main.async {
-                    self._statusCloser?(.end(isSuccess: false, errorMessage: error?.localizedDescription))
+                    self._statusClosure?(.end(isSuccess: false, errorMessage: error?.localizedDescription))
                 }
                 return
             }
@@ -85,12 +86,12 @@ public class MHPDFViewer: NSObject{
             } catch {
                 print(error.localizedDescription)
                 DispatchQueue.main.async {
-                    self._statusCloser?(.end(isSuccess: false, errorMessage: error.localizedDescription))
+                    self._statusClosure?(.end(isSuccess: false, errorMessage: error.localizedDescription))
                 }
             }
             DispatchQueue.main.async {
                 self.share(url: tmpURL, title: title)
-                self._statusCloser?(.end(isSuccess: true, errorMessage: nil))
+                self._statusClosure?(.end(isSuccess: true, errorMessage: nil))
             }
         }
         self._task?.resume()
