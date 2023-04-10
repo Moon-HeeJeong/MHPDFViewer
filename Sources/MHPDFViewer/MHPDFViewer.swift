@@ -8,8 +8,8 @@ public class MHPDFViewer: NSObject{
         case ing
         case end(isSuccess: Bool, errorMessage: String?)
     }
-    public typealias MHDownloaderStatusCloser = (LoadStatus)->()
-    public var _statusCloser: MHDownloaderStatusCloser?
+    public typealias MHPDFViewerStatusCloser = (LoadStatus)->()
+    private var _statusCloser: MHPDFViewerStatusCloser?
     
     deinit{
         print("deinit \(self)")
@@ -21,12 +21,17 @@ public class MHPDFViewer: NSObject{
     
     unowned let presenter: UIViewController
     
-    public init(presenter: UIViewController, closer: MHDownloaderStatusCloser? = nil) {
+    
+    public init(presenter: UIViewController, closer: MHPDFViewerStatusCloser? = nil) {
         self.presenter = presenter
         self._documentInteractionController = UIDocumentInteractionController()
         
         super.init()
         self._documentInteractionController.delegate = self
+        self._statusCloser = closer
+    }
+    
+    public func setCloser(closer: MHPDFViewerStatusCloser?){
         self._statusCloser = closer
     }
     
